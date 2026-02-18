@@ -8,13 +8,20 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    const { name, amount, businessType, location, teamAssigned } = body;
+    const { name, amount, businessType, location, assignedTeam, pakage } = body;
 
     // Basic validation
-    if (!name || !amount || !businessType || !location || !teamAssigned) {
+    if (
+      !name ||
+      !amount ||
+      !businessType ||
+      !location ||
+      !assignedTeam ||
+      !pakage
+    ) {
       return NextResponse.json(
         { success: false, message: "All fields are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -23,7 +30,8 @@ export async function POST(req: Request) {
       amount,
       businessType,
       location,
-      teamAssigned,
+      assignedTeam,
+      pakage,
     });
 
     return NextResponse.json(
@@ -32,7 +40,7 @@ export async function POST(req: Request) {
         message: "Sponsor created successfully",
         data: newSponsor,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
     console.error("Sponsor Creation Error:", error);
@@ -42,7 +50,7 @@ export async function POST(req: Request) {
         success: false,
         message: "Server Error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

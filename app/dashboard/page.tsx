@@ -5,16 +5,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, X, Trash2 } from "lucide-react";
-import { set } from "mongoose";
+import { Plus, X, Trash2, Loader2 } from "lucide-react";
 import axios from "axios";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { teams } from "@/teams";
 
 interface Sponsor {
   _id: string;
-  sponsorName: string;
+  name: string;
   businessType: string;
   location: string;
   assignedTeam: string;
+  pakage: string;
   amount: string;
 }
 
@@ -25,90 +34,104 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    sponsorName: "",
+    name: "",
     businessType: "",
     location: "",
     assignedTeam: "",
+    pakage: "",
     amount: "",
   });
 
   const fetchSponsors = async () => {
-  try {
-    setIsLoading(true);
-    const response = await axios.get("/api/get-sponsors");
+    try {
+      setIsLoading(true);
+      const response = await axios.get("/api/get-sponsors");
 
-    if (response.data.success) {
-      setSponsors(response.data.data);
+      if (response.data.success) {
+        setSponsors(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching sponsors:", error);
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching sponsors:", error);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
-useEffect(() => {
-  fetchSponsors();
-}, []);
+  useEffect(() => {
+    fetchSponsors();
+  }, []);
 
   const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleDelete = async (id: any) => {
-  try {
-    setIsLoading(true);
+    try {
+      setIsLoading(true);
 
-    const response = await axios.delete(`/api/sponsors/${id}`);
+      const response = await axios.delete(`/api/delete/${id}`);
+      // console.log(response);
 
-    await fetchSponsors(); // 🔥 Refetch after delete
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      await fetchSponsors(); // 🔥 Refetch after delete
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: any) => {
-  e.preventDefault();
-  setIsLoading(true);
+    e.preventDefault();
+    setIsLoading(true);
 
-  try {
-    const newSponsor = {
-      name: formData.sponsorName,
-      businessType: formData.businessType,
-      location: formData.location,
-      teamAssigned: formData.assignedTeam,
-      amount: Number(formData.amount),
-    };
+    // console.log(formData);
 
-    const response = await axios.post("/api/add-sponsor", newSponsor);
-    console.log(response)
+    try {
+      const newSponsor = {
+        name: formData.name,
+        businessType: formData.businessType,
+        location: formData.location,
+        assignedTeam: formData.assignedTeam,
+        pakage: formData.pakage,
+        amount: formData.amount,
+      };
 
-    await fetchSponsors();
+      if (!formData.assignedTeam) {
+        alert("Please select an assigned team");
+        return;
+      }
 
-    setFormData({
-      sponsorName: "",
-      businessType: "",
-      location: "",
-      assignedTeam: "",
-      amount: "",
-    });
+      if (!formData.pakage) {
+        alert("Please select a package");
+        return;
+      }
 
-    setIsOpen(false);
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      const response = await axios.post("/api/add-sponsor", newSponsor);
+      // console.log(response);
+
+      await fetchSponsors();
+
+      setFormData({
+        name: "",
+        businessType: "",
+        location: "",
+        assignedTeam: "",
+        pakage: "",
+        amount: "",
+      });
+
+      setIsOpen(false);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // 🔹 Calculate Total Amount
   const totalAmount = useMemo(() => {
     return sponsors.reduce((sum, sponsor) => {
-      const numericValue = Number(
-        sponsor.amount
-      );
+      const numericValue = Number(sponsor.amount);
       return sum + (isNaN(numericValue) ? 0 : numericValue);
     }, 0);
   }, [sponsors]);
@@ -124,7 +147,7 @@ useEffect(() => {
             IMMERSE 2026
           </h1>
           <p className="text-gray-400">Sponsor Tracking Dashboard</p>
-          <p className="text-lg sm:text-xl font-semibold text-blue-400">
+          <p className="text-xl sm:text-xl font-semibold text-blue-400">
             Total Funds: {formattedTotal}
           </p>
         </div>
@@ -161,9 +184,9 @@ useEffect(() => {
 
               <form onSubmit={handleSubmit} className="p-4 space-y-4">
                 <Input
-                  name="sponsorName"
+                  name="name"
                   placeholder="Sponsor Name"
-                  value={formData.sponsorName}
+                  value={formData.name}
                   onChange={handleChange}
                   required
                 />
@@ -184,13 +207,63 @@ useEffect(() => {
                   required
                 />
 
-                <Input
-                  name="assignedTeam"
-                  placeholder="Assigned Team"
+                <Select
                   value={formData.assignedTeam}
-                  onChange={handleChange}
-                  required
-                />
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, assignedTeam: value })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder="Select Assigned Team"
+                      className="truncate"
+                    />
+                  </SelectTrigger>
+
+                  <SelectContent className="max-h-60 overflow-y-auto bg-zinc-900 text-white">
+                    <SelectGroup>
+                      {teams.map((team) => (
+                        <SelectItem
+                          key={team}
+                          value={team}
+                          className="whitespace-normal leading-snug"
+                        >
+                          {team}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+
+                {/* Packages */}
+                <Select
+                  value={formData.pakage}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, pakage: value })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder="Select Package"
+                      className="truncate"
+                    />
+                  </SelectTrigger>
+
+                  <SelectContent className="max-h-60 overflow-y-auto bg-zinc-900 text-white">
+                    <SelectGroup>
+                      <SelectItem value="Title Sponsor">
+                        Title Sponsor
+                      </SelectItem>
+                      <SelectItem value="Gold Sponsor">Gold Sponsor</SelectItem>
+                      <SelectItem value="Silver Sponsor">
+                        Silver Sponsor
+                      </SelectItem>
+                      <SelectItem value="Support Sponsor">
+                        Support Sponsor
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
 
                 <Input
                   name="amount"
@@ -202,9 +275,17 @@ useEffect(() => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 rounded-xl"
+                  disabled={isLoading}
+                  className="w-full bg-blue-600 hover:bg-blue-700 rounded-xl flex items-center justify-center gap-2"
                 >
-                  Save Sponsor
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Sponsor"
+                  )}
                 </Button>
               </form>
             </motion.div>
@@ -221,8 +302,8 @@ useEffect(() => {
           >
             <CardContent className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h2 className="font-semibold text-lg">
-                  {sponsor.sponsorName}
+                <h2 className="font-semibold text-white text-lg">
+                  {sponsor.name.toUpperCase()}
                 </h2>
                 <p className="text-sm text-gray-400">
                   {sponsor.businessType} • {sponsor.location}
@@ -230,6 +311,9 @@ useEffect(() => {
                 <p className="text-sm text-gray-400">
                   Team: {sponsor.assignedTeam}
                 </p>
+                <span className="px-3 py-1 text-white rounded-full text-xs bg-blue-500/20 border border-blue-500/40">
+                  {sponsor.pakage}
+                </span>
               </div>
 
               <div className="flex items-center gap-4">

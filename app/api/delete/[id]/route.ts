@@ -5,18 +5,18 @@ import mongoose from "mongoose";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     await connectDB();
 
-    const { id } = params;
+    const { id } = await context.params; // ✅ FIX HERE
 
     // Validate MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, message: "Invalid Sponsor ID" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -25,7 +25,7 @@ export async function DELETE(
     if (!deletedSponsor) {
       return NextResponse.json(
         { success: false, message: "Sponsor not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -34,14 +34,14 @@ export async function DELETE(
         success: true,
         message: "Sponsor deleted successfully",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Delete Sponsor Error:", error);
 
     return NextResponse.json(
       { success: false, message: "Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -4,7 +4,7 @@ const sponsorSchema = new Schema(
   {
     name: {
       type: String,
-      required: true
+      required: true,
     },
     amount: {
       type: Number,
@@ -18,27 +18,22 @@ const sponsorSchema = new Schema(
       type: String,
       required: true,
     },
-    teamAssigned: {
+    assignedTeam: {
       type: String,
       required: true,
-    } 
+    },
+    pakage: {
+      type: String,
+      required: true,
+    },
   },
   {
-    timestamps: true
-  }
-)
+    timestamps: true,
+  },
+);
 
-const SponsorModel = mongoose.models?.SponsorModel || mongoose.model("SponsorModel", sponsorSchema);
+const SponsorModel =
+  mongoose.models?.SponsorModel ||
+  mongoose.model("SponsorModel", sponsorSchema);
 
 export default SponsorModel;
-
-
-// id: 1,
-//     sponsorName: "Dominos",
-//     businessType: "Food & Beverage",
-//     location: "Downtown",
-//     assignedTeam: "Team A",
-//     responseType: "Very Interested",
-//     followUpStatus: "Pending",
-//     finalStatus: "Negotiation",
-//     amount: "₹5,00,000",
