@@ -323,7 +323,7 @@ export default function Dashboard() {
 
               <div className="flex items-center gap-4">
                 <span className="text-blue-400 font-semibold">
-                  ₹{sponsor.amount.toLocaleString("en-IN")}
+                  ₹{parseFloat(sponsor.amount).toLocaleString("en-IN")}
                 </span>
 
                 <Button
