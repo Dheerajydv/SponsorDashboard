@@ -293,6 +293,11 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <Loader2 className="h-8 w-8 text-white animate-spin" />
+        </div>
+      )}
       {/* Sponsor List */}
       <div className="grid gap-4">
         {sponsors.map((sponsor) => (
